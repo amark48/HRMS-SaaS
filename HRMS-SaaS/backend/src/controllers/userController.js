@@ -54,34 +54,72 @@ const getUserProfile = asyncHandler(async (req, res) => {
 // GET /api/users - Fetch all users.
 // For SuperAdmin, this returns all users (with Tenant and Role associations) across tenants.
 // For non-SuperAdmin, it returns users filtered by tenant.
+// Make sure to import your sequelize instance and QueryTypes:
+const { sequelize } = require("../config/db");
+const { QueryTypes } = require("sequelize");
+
 const getUsers = asyncHandler(async (req, res) => {
   console.log("🔍 [DEBUG] ======== ENTER getUsers ========");
   
-  // Quick sanity-check now that we import from index:
-  console.log("🔍 [DEBUG] Tenant instanceof Model:", Tenant.prototype instanceof require("sequelize").Model);
+  // Quick sanity-check for the Tenant model.
+  console.log(
+    "🔍 [DEBUG] Tenant instanceof Model:",
+    Tenant.prototype instanceof require("sequelize").Model
+  );
   console.log("🔍 [DEBUG] Tenant.getTableName():", Tenant.getTableName());
   
-  // … rest of your existing getUsers code, unchanged …
-  
+  // Log the authenticated user for debugging.
+  console.log("🔍 [DEBUG] req.user:", req.user);
+
   try {
-    const isSuperAdmin = req.user?.role?.name === "SuperAdmin";
+    // Ensure we have role details. If req.user.role is missing or incomplete,
+    // fetch the role from the database.
+    let roleFromToken = req.user.role;
+    if (!roleFromToken || !roleFromToken.name) {
+      console.log("[DEBUG] Role object missing from token. Fetching role from DB for roleId:", req.user.roleId);
+      roleFromToken = await Role.findByPk(req.user.roleId);
+      console.log("[DEBUG] Fetched role:", roleFromToken);
+    }
+    
+    const isSuperAdmin = roleFromToken && roleFromToken.name === "SuperAdmin";
+    console.log("[DEBUG] isSuperAdmin:", isSuperAdmin);
+    
     let users;
+    // Base query options: exclude password, eager load Tenant and Role, disable paranoid filtering.
     const baseOptions = {
       attributes: { exclude: ["password"] },
       include: [
-        { model: Tenant, as: "tenant", attributes: ["id", "name"], required: false },
-        { model: Role,   as: "role",   attributes: ["id", "name"], required: false },
+        {
+          model: Tenant,
+          as: "tenant",
+          attributes: ["id", "name"],
+          required: false,
+        },
+        {
+          model: Role,
+          as: "role",
+          attributes: ["id", "name"],
+          required: false,
+        },
       ],
       logging: console.log.bind(console, "🔍 [SQL]"),
+      paranoid: false,
     };
 
     if (isSuperAdmin) {
-      console.log("[DEBUG] SuperAdmin – no tenant filter");
-      users = await User.findAll(baseOptions);
+      console.log("[DEBUG] SuperAdmin branch – retrieving ALL users (clearing any default scopes).");
+      // Retrieve all users without any tenant filtering.
+      users = await User.unscoped().findAll({
+        where: {},
+        ...baseOptions,
+      });
     } else {
       const tokenTenant = req.user?.tenantId || req.user?.companyId;
-      if (!tokenTenant) throw new Error("Tenant identification missing");
-      console.log("[DEBUG] Non-SuperAdmin – filtering by tenant:", tokenTenant);
+      if (!tokenTenant) {
+        console.error("[ERROR] No tenant identification found in token.");
+        throw new Error("Tenant identification missing");
+      }
+      console.log("[DEBUG] Non-SuperAdmin branch – filtering users by tenant:", tokenTenant);
       users = await User.findAll({
         ...baseOptions,
         where: { tenantId: tokenTenant },
@@ -89,6 +127,7 @@ const getUsers = asyncHandler(async (req, res) => {
     }
 
     console.log("[DEBUG] Successfully fetched users:", users.length);
+    console.log("[DEBUG] User IDs fetched:", users.map((u) => u.id).join(", "));
     return res.json(users);
   } catch (error) {
     console.error("[ERROR] getUsers failed:", error);
@@ -98,6 +137,8 @@ const getUsers = asyncHandler(async (req, res) => {
     });
   }
 });
+
+
 
 // PUT /api/users/profile - Update user profile including optional avatar upload and password update
 const updateUserProfile = asyncHandler(async (req, res) => {
@@ -253,65 +294,113 @@ const updateUserProfile = asyncHandler(async (req, res) => {
 
 // POST /api/users - Create a new user
 const createUser = asyncHandler(async (req, res) => {
-  const { firstName, lastName, email, tenantId, roleId, password, mfaEnabled, mfaType } = req.body;
-  
+  console.log("[DEBUG] Received req.body in createUser:", req.body);
+  console.log("[DEBUG] req.user in createUser:", req.user);
+  console.log("[DEBUG] req.user.dataValues:", req.user.dataValues);
+  console.log("[DEBUG] req.file:", req.file); // Debug uploaded file info
+
+  const { firstName, lastName, email, tenantId, roleId, password, mfaEnabled } = req.body;
+  let mfaTypeInput = req.body.mfaType; // Expected to be sent as a JSON string or an array
+
   // Validate required fields.
   if (!tenantId || !roleId || !firstName || !lastName || !email || !password) {
     res.status(400);
     throw new Error("Missing required fields");
   }
-  
-  // Get tenant identifier from the token.
+
+  // Get tenant identifier from token.
   const tokenTenant = req.user.companyID || req.user.companyId || req.user.tenantId;
   if (!tokenTenant) {
     res.status(400);
     throw new Error("Tenant identification is missing in token");
   }
-  
-  // Enforce SaaS isolation: The tenantId in the request must match the token's tenant.
-  if (tenantId !== tokenTenant) {
+
+  // Explicitly fetch the creating user's role from the DB.
+  const creatingUserRole = await Role.findByPk(req.user.roleId);
+  console.log("[DEBUG] Creating user's role (fetched from DB):", creatingUserRole);
+  const roleName = creatingUserRole ? creatingUserRole.name : undefined;
+  console.log("[DEBUG] Role name from token (via DB):", roleName);
+
+  // Enforce SaaS isolation only for non-SuperAdmin users.
+  if (roleName !== "SuperAdmin" && tenantId !== tokenTenant) {
     res.status(400);
     throw new Error("Tenant mismatch: You can only create users within your own tenant");
   }
-  
+
   // Validate the tenant and ensure it is active.
   const tenant = await Tenant.findByPk(tenantId);
   if (!tenant || !tenant.isActive) {
     res.status(400);
     throw new Error("Invalid or inactive tenant");
   }
-  
+
   // Validate that the role exists.
   const role = await Role.findByPk(roleId);
   if (!role) {
     res.status(400);
     throw new Error("Invalid role selection");
   }
-  
+
   // Ensure no user already exists with the same email in this tenant.
   const existingUser = await User.findOne({ where: { email, tenantId } });
   if (existingUser) {
     res.status(400);
     throw new Error("User with this email already exists in the tenant");
   }
-  
+
+  // Process MFA type.
+  let processedMfaType = null;
+  if (mfaEnabled && mfaTypeInput) {
+    try {
+      // If the input is a string, parse it; otherwise, assume it's already an array.
+      const parsed =
+        typeof mfaTypeInput === "string"
+          ? JSON.parse(mfaTypeInput)
+          : mfaTypeInput;
+      // Ensure that we end up with an array.
+      if (Array.isArray(parsed)) {
+        processedMfaType = parsed;
+      } else {
+        processedMfaType = [parsed];
+      }
+    } catch (err) {
+      console.error("[DEBUG] Error parsing mfaType:", err);
+      processedMfaType = Array.isArray(mfaTypeInput)
+        ? mfaTypeInput
+        : [mfaTypeInput];
+    }
+  }
+  console.log("[DEBUG] Processed MFA type to be saved:", processedMfaType);
+
+  // Process the uploaded avatar file.
+  let avatarPath = null;
+  if (req.file) {
+    avatarPath = req.file.path; // Ensure your multer middleware stores the file path.
+    console.log("[DEBUG] Avatar file path:", avatarPath);
+  } else {
+    console.log("[DEBUG] No avatar file uploaded.");
+  }
+
   const hashedPassword = await bcrypt.hash(password, 10);
   const newUser = await User.create({
     firstName,
     lastName,
     email,
-    tenantId, // validated to match tokenTenant
+    tenantId,
     roleId,
     password: hashedPassword,
     mfaEnabled,
-    mfaType: mfaEnabled ? mfaType : null,
+    mfaType: processedMfaType, // stored as an array
+    avatar: avatarPath
   });
+
   debugLog("[DEBUG] New user created:", newUser.toJSON());
   res.status(201).json({
     message: "User created successfully",
-    user: { ...newUser.toJSON(), password: undefined },
+    user: { ...newUser.toJSON(), password: undefined }
   });
 });
+
 
 // PUT /api/users/:id/status — Toggle isActive (Admins only, with tenant isolation)
 const updateUserStatus = asyncHandler(async (req, res) => {

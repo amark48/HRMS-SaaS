@@ -132,6 +132,36 @@ useEffect(() => {
   fetchTenants();
 }, []);
 
+  // **NEW FUNCTION: Handles profile picture updates**
+  const handleProfilePictureUpdate = async (userId, newAvatarUrl) => {
+    try {
+      const token = localStorage.getItem("authToken");
+
+      // Step 1: Delete old avatar
+      await fetch(`${API_URL}/api/users/${userId}/delete-avatar`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      // Step 2: Upload new avatar
+      const response = await fetch(`${API_URL}/api/users/${userId}/update-avatar`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ avatarURL: newAvatarUrl }),
+      });
+
+      if (response.ok) {
+        const updatedUser = await response.json();
+
+        // Step 3: **Ensure UI refreshes immediately**
+        setUsers(users.map(user =>
+          user.id === updatedUser.id ? { ...user, avatarURL: updatedUser.avatarURL } : user
+        ));
+      }
+    } catch (error) {
+      console.error("Error updating profile picture:", error);
+    }
+  };
 const handleToggleStatus = async (userId, newStatus) => {
   try {
     const token = localStorage.getItem("authToken");

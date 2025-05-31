@@ -11,6 +11,7 @@ const userRoutes = require("./src/routes/userRoutes");
 const roleRoutes = require("./src/routes/roleRoutes");
 const subscriptionRoutes = require("./src/routes/subscriptionRoutes");
 const uploadRoutes = require("./src/routes/uploadRoutes");
+const avatarUploadRoutes = require("./src/routes/avatarUploadRoutes");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -37,7 +38,6 @@ app.use(
 app.use(express.json());
 
 
-
 app.use(express.json()); // ✅ Handle JSON requests
 app.use(express.urlencoded({ extended: true })); // ✅ Handle URL-encoded requests
 
@@ -61,6 +61,8 @@ app.use("/api/users", userRoutes); // ✅ User routes properly mounted
 app.use("/api/roles", roleRoutes);
 app.use("/api/subscriptions", subscriptionRoutes);
 app.use("/api/upload", uploadRoutes); // 🔄 Corrected mounting for uploads
+// For example, if you want to use a base URL "/upload-avatar":
+app.use("/upload-avatar", avatarUploadRoutes);
 
 // 🔹 **Check Unmatched Routes**
 app.use((req, res, next) => {
