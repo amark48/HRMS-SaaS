@@ -18,16 +18,16 @@ export default function HeaderComponent() {
         {/* Desktop Navigation */}
         <nav className="hidden md:flex space-x-8">
           <Link href="/features" className="text-gray-700 hover:text-gray-900">
-            Features
+            
           </Link>
           <Link href="/pricing" className="text-gray-700 hover:text-gray-900">
-            Pricing
+            
           </Link>
           <Link href="/about" className="text-gray-700 hover:text-gray-900">
-            About
+            
           </Link>
           <Link href="/contact" className="text-gray-700 hover:text-gray-900">
-            Contact
+            
           </Link>
         </nav>
 
@@ -73,17 +73,15 @@ export default function HeaderComponent() {
       {isMobileMenuOpen && (
         <div className="md:hidden bg-white shadow">
           <nav className="px-4 pt-2 pb-4 space-y-2">
-            <Link href="/features" className="block text-gray-700 hover:text-gray-900">
-              Features
-            </Link>
+          
             <Link href="/pricing" className="block text-gray-700 hover:text-gray-900">
-              Pricing
+              
             </Link>
             <Link href="/about" className="block text-gray-700 hover:text-gray-900">
-              About
+             
             </Link>
             <Link href="/contact" className="block text-gray-700 hover:text-gray-900">
-              Contact
+              
             </Link>
             <div className="mt-2 border-t border-gray-200 pt-2">
               <Link

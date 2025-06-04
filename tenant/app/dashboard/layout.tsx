@@ -1,11 +1,23 @@
 // app/dashboard/layout.tsx
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+'use client';
+
+import { ReactNode } from "react";
+
+export default function DashboardLayout({ children }: { children: ReactNode }) {
   return (
-    <html>
-      <head>{/* dashboard meta tags */}</head>
-      <body>
-        {children}
-      </body>
-    </html>
+    <div className="dashboard-layout">
+      <main>{children}</main>
+      <style jsx>{`
+        .dashboard-layout {
+          display: flex;
+          flex-direction: column;
+          min-height: 100vh;
+        }
+        main {
+          flex: 1;
+          padding: 2rem;
+        }
+      `}</style>
+    </div>
   );
 }
