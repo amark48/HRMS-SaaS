@@ -51,16 +51,10 @@ export default function Dashboard() {
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const [showToast, setShowToast] = useState(false);
-
-  // Reduce top bar height for a leaner look
   const topBarHeight = "64px";
-
-  // Example user info
-  const userAvatar = ""; // when not provided, initials are used
+  const userAvatar = "";
   const userName = "Audu Mark";
   const userInitials = userName.split(" ").map((n) => n[0]).join("");
-
-  // Logo original size – adjust to your actual logo dimensions
   const logoWidth = 200;
   const logoHeight = 50;
 
@@ -72,38 +66,45 @@ export default function Dashboard() {
     }, 3000);
   };
 
+  const menuItems = [
+    { href: "/dashboard", label: "Dashboard" },
+    { href: "/dashboard/employees", label: "Employees" },
+    { href: "/dashboard/leave", label: "Leave Management" },
+    { href: "/dashboard/payroll", label: "Payroll" },
+    { href: "/dashboard/analytics", label: "Analytics" },
+    { href: "/dashboard/settings", label: "Settings" },
+  ];
+
   return (
     <div className="flex flex-col min-h-screen bg-gray-50 relative">
-      {/* Fixed Top Bar */}
+      {/* Fixed Top Bar with Logo and Text on the Left */}
       <header
         className="fixed inset-x-0 top-0 bg-white shadow z-50"
         style={{ height: topBarHeight }}
       >
-        <div className="max-w-7xl mx-auto h-full px-4 sm:px-6 lg:px-8 flex items-center justify-between">
-          {/* Logo and Title */}
-          <div className="flex items-center space-x-3">
+        <div className="h-full flex items-center justify-between px-4">
+          {/* Left: Logo + enterprise HRMS text */}
+          <div className="flex items-center ml-6">
             <Link href="/">
-              <div className="flex-shrink-0">
-                <Image
-                  src="/logo.png"
-                  alt="enterprise HRMS"
-                  width={logoWidth}
-                  height={logoHeight}
-                  className="object-contain"
-                />
-              </div>
+              <Image
+                src="/logo.png"
+                alt="enterprise HRMS"
+                width={logoWidth}
+                height={logoHeight}
+                className="object-contain"
+              />
             </Link>
-            <span className="text-xl font-bold text-gray-800">
+            <span className="ml-2 text-xl font-bold text-gray-800">
               enterprise HRMS
             </span>
           </div>
-          {/* Notifications and Profile */}
+
+          {/* Right: Notifications, Profile and Mobile Hamburger */}
           <div className="flex items-center space-x-4 relative">
             <button
               onClick={handleNotificationClick}
-              className="relative p-2 rounded-full hover:bg-gray-100 transition"
+              className="relative p-2 rounded-full hover:bg-gray-100 transition-transform transform hover:scale-105 duration-200"
             >
-              {/* Modern filled notification bell icon */}
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 className="w-6 h-6 text-gray-700 hover:text-indigo-600 transition"
@@ -112,14 +113,14 @@ export default function Dashboard() {
               >
                 <path d="M12 2a9.931 9.931 0 00-7.071 2.929A9.931 9.931 0 002 12c0 2.209.895 4.21 2.343 5.657L4 21l3.343-1.657C8.79 20.105 10.791 21 13 21c3.309 0 6-2.691 6-6V12a9.93 9.93 0 00-2.929-7.071A9.931 9.931 0 0012 2zm0 18a2 2 0 110-4 2 2 0 010 4z" />
               </svg>
-              <span className="absolute -top-1 -right-1 inline-flex items-center justify-center px-1 text-xs font-bold text-white bg-red-500 rounded-full">
+              <span className="absolute -top-1 -right-1 inline-flex items-center justify-center px-1 text-xs font-bold text-white bg-red-500 rounded-full transition-all duration-200">
                 3
               </span>
             </button>
             <div className="relative">
               <button
                 onClick={() => setProfileDropdownOpen((prev) => !prev)}
-                className="w-10 h-10 rounded-full overflow-hidden focus:outline-none flex items-center justify-center bg-indigo-600"
+                className="w-10 h-10 rounded-full overflow-hidden focus:outline-none flex items-center justify-center bg-gradient-to-br from-indigo-500 to-purple-500 ring-2 ring-white ring-offset-2 shadow-md hover:shadow-lg transition-all duration-200"
               >
                 {userAvatar ? (
                   <Image
@@ -130,7 +131,7 @@ export default function Dashboard() {
                     className="object-cover"
                   />
                 ) : (
-                  <span className="text-white font-semibold text-lg">
+                  <span className="text-white font-bold tracking-wide text-lg">
                     {userInitials}
                   </span>
                 )}
@@ -149,7 +150,7 @@ export default function Dashboard() {
                     </li>
                     <li>
                       <button
-                        onClick={() => router.push("/login")}
+                        onClick={() => router.push("login")}
                         className="w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
                       >
                         Logout
@@ -161,7 +162,7 @@ export default function Dashboard() {
             </div>
             {/* Mobile Hamburger */}
             <button
-              className="lg:hidden p-2 rounded hover:bg-gray-100 transition"
+              className="lg:hidden p-2 rounded hover:bg-gray-100 transition-transform transform hover:scale-105 duration-200"
               onClick={() => setMobileSidebarOpen(true)}
             >
               <svg
@@ -183,7 +184,7 @@ export default function Dashboard() {
         </div>
       </header>
 
-      {/* Mobile Sidebar Overlay */}
+      {/* Mobile Sidebar Overlay (Logo removed so header remains the sole branding element) */}
       {mobileSidebarOpen && (
         <div
           className="fixed inset-0 bg-black bg-opacity-50 z-50 flex md:hidden"
@@ -193,32 +194,9 @@ export default function Dashboard() {
             className="bg-white w-64 h-full p-6"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="mb-8 text-center">
-              <Link href="/">
-                <div className="flex-shrink-0 inline-block">
-                  <Image
-                    src="/logo.png"
-                    alt="enterprise HRMS"
-                    width={logoWidth}
-                    height={logoHeight}
-                    className="object-contain mx-auto"
-                  />
-                </div>
-              </Link>
-              <h1 className="mt-4 text-xl font-bold text-gray-800">
-                enterprise HRMS
-              </h1>
-            </div>
             <nav>
               <ul className="space-y-4">
-                {[
-                  { href: "/dashboard", label: "Dashboard" },
-                  { href: "/dashboard/employees", label: "Employees" },
-                  { href: "/dashboard/leave", label: "Leave Management" },
-                  { href: "/dashboard/payroll", label: "Payroll" },
-                  { href: "/dashboard/analytics", label: "Analytics" },
-                  { href: "/dashboard/settings", label: "Settings" },
-                ].map((item) => (
+                {menuItems.map((item) => (
                   <li key={item.href}>
                     <Link
                       href={item.href}
@@ -237,7 +215,7 @@ export default function Dashboard() {
 
       {/* Main Layout */}
       <div className="flex flex-1 pt-[64px]">
-        {/* Desktop Sidebar */}
+        {/* Desktop Sidebar without Logo */}
         <aside
           className="hidden md:block w-64 border-r border-gray-200 bg-white"
           style={{
@@ -248,14 +226,7 @@ export default function Dashboard() {
         >
           <nav className="p-6">
             <ul className="space-y-4">
-              {[
-                { href: "/dashboard", label: "Dashboard" },
-                { href: "/dashboard/employees", label: "Employees" },
-                { href: "/dashboard/leave", label: "Leave Management" },
-                { href: "/dashboard/payroll", label: "Payroll" },
-                { href: "/dashboard/analytics", label: "Analytics" },
-                { href: "/dashboard/settings", label: "Settings" },
-              ].map((item) => (
+              {menuItems.map((item) => (
                 <li key={item.href}>
                   <Link
                     href={item.href}
@@ -281,31 +252,39 @@ export default function Dashboard() {
                 Welcome to Your Dashboard!
               </h3>
               <p className="text-gray-600">
-                Manage every aspect of your tenant's HR systems—from employee
+                Manage every aspect of your tenant's HR systems— from employee
                 management and payroll to detailed analytics and reporting.
               </p>
             </section>
+
             {/* KPI Cards */}
-            <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-              <div className="bg-white rounded-lg shadow p-6">
+            <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8 items-stretch">
+              <div className="bg-white rounded-lg shadow p-6 flex flex-col">
                 <h4 className="text-lg font-semibold text-gray-800 mb-2">
                   Total Employees
                 </h4>
-                <p className="text-3xl font-bold text-indigo-600">1,250</p>
+                <p className="text-3xl font-bold text-indigo-600 mt-auto">
+                  1,250
+                </p>
               </div>
-              <div className="bg-white rounded-lg shadow p-6">
+              <div className="bg-white rounded-lg shadow p-6 flex flex-col">
                 <h4 className="text-lg font-semibold text-gray-800 mb-2">
                   Payroll Processed
                 </h4>
-                <p className="text-3xl font-bold text-indigo-600">$750K</p>
+                <p className="text-3xl font-bold text-indigo-600 mt-auto">
+                  $750K
+                </p>
               </div>
-              <div className="bg-white rounded-lg shadow p-6">
+              <div className="bg-white rounded-lg shadow p-6 flex flex-col">
                 <h4 className="text-lg font-semibold text-gray-800 mb-2">
                   Leaves Approved
                 </h4>
-                <p className="text-3xl font-bold text-indigo-600">320</p>
+                <p className="text-3xl font-bold text-indigo-600 mt-auto">
+                  320
+                </p>
               </div>
             </section>
+
             {/* Analytics Section */}
             <section className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
               {/* Employee Distribution Pie Chart */}
@@ -328,6 +307,7 @@ export default function Dashboard() {
                   </PieChart>
                 </ResponsiveContainer>
               </div>
+
               {/* Monthly Trends Line Chart */}
               <div className="bg-white rounded-lg shadow p-6">
                 <h4 className="text-xl font-bold text-gray-800 mb-4">
@@ -353,6 +333,7 @@ export default function Dashboard() {
                   </LineChart>
                 </ResponsiveContainer>
               </div>
+
               {/* Revenue Trends Bar Chart */}
               <div className="bg-white rounded-lg shadow p-6">
                 <h4 className="text-xl font-bold text-gray-800 mb-4">
@@ -368,15 +349,12 @@ export default function Dashboard() {
                     <YAxis />
                     <Tooltip />
                     <Legend />
-                    <Bar
-                      dataKey="revenue"
-                      fill="#6366F1"
-                      barSize={50}
-                    />
+                    <Bar dataKey="revenue" fill="#6366F1" barSize={50} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
             </section>
+
             {/* Recent Notifications */}
             <section className="bg-white rounded-lg shadow p-6 mb-8">
               <h4 className="text-xl font-bold text-gray-800 mb-4">
@@ -406,7 +384,8 @@ export default function Dashboard() {
           {/* Footer */}
           <footer className="bg-gray-200">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 text-center text-gray-700">
-              &copy; {new Date().getFullYear()} enterprise HRMS. All rights reserved.
+              &copy; {new Date().getFullYear()} enterprise HRMS. All rights
+              reserved.
             </div>
           </footer>
         </main>
