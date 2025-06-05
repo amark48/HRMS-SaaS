@@ -120,7 +120,7 @@ export default function Home() {
         });
         if (response.ok) {
           const data = await response.json();
-          setUserId(data.user.id); // Extract user id via data.user.id
+          setUserId(data.user.id);
           toast.success("Thank you for signing up! Please verify OTP.", {
             duration: 5000,
             style: {
@@ -224,18 +224,13 @@ export default function Home() {
           {/* Clickable Logo & Branding */}
           <a href="/" className="flex items-center">
             <div className="relative mr-6">
-              <Image
-                src="/logo.png"
-                alt="enterprise HRMS"
-                width={200}
-                height={200}
-                priority
-              />
+              <Image src="/logo.png" alt="enterprise HRMS" width={200} height={200} priority />
             </div>
             <div>
               <h1 className="text-2xl font-bold text-gray-800">enterprise HRMS</h1>
             </div>
           </a>
+
           {/* Desktop Navigation */}
           <nav className="hidden md:flex space-x-8 text-lg">
             <a href="#" className="text-gray-700 hover:text-indigo-600 transition-colors">
@@ -254,11 +249,13 @@ export default function Home() {
               Contact
             </a>
           </nav>
+
           <div className="hidden md:block">
             <button className="px-6 py-2 border border-indigo-600 text-indigo-600 rounded-full hover:bg-indigo-600 hover:text-white transition">
               Sign In
             </button>
           </div>
+
           {/* Mobile Menu Toggle */}
           <div className="md:hidden">
             <button onClick={() => setMenuOpen(!menuOpen)} className="p-2 focus:outline-none" aria-label="Toggle menu">
@@ -278,19 +275,29 @@ export default function Home() {
           <div className="md:hidden bg-white shadow">
             <ul className="px-6 py-4 space-y-4">
               <li>
-                <a href="#" className="block text-gray-700 hover:text-indigo-600">Home</a>
+                <a href="#" className="block text-gray-700 hover:text-indigo-600">
+                  Home
+                </a>
               </li>
               <li>
-                <a href="#" className="block text-gray-700 hover:text-indigo-600">Features</a>
+                <a href="#" className="block text-gray-700 hover:text-indigo-600">
+                  Features
+                </a>
               </li>
               <li>
-                <a href="#" className="block text-gray-700 hover:text-indigo-600">Solutions</a>
+                <a href="#" className="block text-gray-700 hover:text-indigo-600">
+                  Solutions
+                </a>
               </li>
               <li>
-                <a href="#" className="block text-gray-700 hover:text-indigo-600">Pricing</a>
+                <a href="#" className="block text-gray-700 hover:text-indigo-600">
+                  Pricing
+                </a>
               </li>
               <li>
-                <a href="#" className="block text-gray-700 hover:text-indigo-600">Contact</a>
+                <a href="#" className="block text-gray-700 hover:text-indigo-600">
+                  Contact
+                </a>
               </li>
               <li>
                 <button className="w-full px-4 py-2 border border-indigo-600 text-indigo-600 rounded-full hover:bg-indigo-600 hover:text-white transition">
@@ -310,8 +317,7 @@ export default function Home() {
             Modern. Powerful. HR.
           </h2>
           <p className="text-xl text-gray-700 mb-8 max-w-xl leading-relaxed">
-            Our enterprise HRMS provides a seamless experience for managing your
-            workforce. Empower your business with smart, agile HR solutions.
+            Our enterprise HRMS provides a seamless experience for managing your workforce. Empower your business with smart, agile HR solutions.
           </p>
           <a
             href="#features"
@@ -320,11 +326,10 @@ export default function Home() {
             Explore Our Solution
           </a>
         </div>
+
         {/* Sign-Up Form Card – Nudged upward */}
         <div id="signup" className="flex-1 w-full max-w-md bg-white rounded-3xl shadow-2xl p-10 -mt-10">
-          <h3 className="text-3xl font-bold text-gray-800 mb-6 text-center">
-            Sign Up Now
-          </h3>
+          <h3 className="text-3xl font-bold text-gray-800 mb-6 text-center">Sign Up Now</h3>
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* First & Last Name */}
             <div className="flex space-x-4">
@@ -461,7 +466,7 @@ export default function Home() {
                 </div>
               )}
             </div>
-            {/* Phone Number (sent as phoneNumber) */}
+            {/* Phone Number */}
             <div>
               <input
                 ref={phoneRef}
@@ -492,9 +497,9 @@ export default function Home() {
         </div>
       </main>
 
-      {/* OTP Verification Modal with dimmed background */}
+      {/* OTP Verification Modal (Popup in the Middle, without blacking out the page) */}
       {showOTPModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-10 flex items-center justify-center z-50">
+        <div className="fixed inset-0 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-2xl p-6 w-full max-w-sm">
             <h2 className="text-2xl font-semibold mb-4 text-center">Verify OTP</h2>
             <p className="text-gray-600 text-center mb-4">
@@ -508,16 +513,10 @@ export default function Home() {
               className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-200"
             />
             <div className="mt-6 flex justify-end space-x-4">
-              <button
-                onClick={() => setShowOTPModal(false)}
-                className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-100"
-              >
+              <button onClick={() => setShowOTPModal(false)} className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-100">
                 Cancel
               </button>
-              <button
-                onClick={handleOTPVerify}
-                className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
-              >
+              <button onClick={handleOTPVerify} className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
                 Verify OTP
               </button>
             </div>
